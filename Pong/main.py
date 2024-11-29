@@ -1,14 +1,12 @@
 import gymnasium as gym
 import ale_py
-import ViTDQN
-
-import DQN
+import ViTDQN as vit
+import Agent
 import ReplayBuffer
 import Agent
 
 
 import numpy as np
-from collections import deque
 import random
 from random import sample
 import torch
@@ -25,17 +23,22 @@ import tensorflow as tf
 import functions as f
 
 
+
 if __name__ == '__main__':
     gym.register_envs(ale_py)
     env = gym.make("ALE/Pong-v5", render_mode='rgb_array')
-    
+    max_episodes = 100
     num_actions = env.action_space.n
+    STATE_SPACE = env.observation_space
+    print(STATE_SPACE)
     
-    model = ViTDQN.ViTDQN(ViTDQN.vit_model, num_actions)
+    model = vit.ViTDQN(vit.vit_model, num_actions)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     
+    agent = Agent.Agent(num_actions, 64, 0.01, 0.001)
+    
+    
     state = f.preprocess_observation(env.reset()[0])
-
     done = False
     total_reward = 0
     i = 0
