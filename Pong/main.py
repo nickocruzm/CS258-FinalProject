@@ -4,23 +4,19 @@ import ViTDQN as vit
 import Agent
 import ReplayBuffer
 import Agent
-
-
 import numpy as np
 import random
-from random import sample
 import torch
 import matplotlib
+import base64
+import os
+import tensorflow as tf
 import matplotlib.pyplot as plt
+
 from IPython import display as ipythondisplay
 from pyvirtualdisplay import Display
-import base64
-
+from random import sample
 from pathlib import Path
-import os
-
-import tensorflow as tf
-import functions as f
 
 def preprocess_observation(obs, new_size=[64,64]):
     """
@@ -46,9 +42,7 @@ if __name__ == '__main__':
     env = gym.make("ALE/Pong-v5", render_mode='rgb_array')
     max_episodes = 100
     num_actions = env.action_space.n
-    STATE_SPACE = env.observation_space
-    print(STATE_SPACE)
-    
+        
     model = vit.ViTDQN(vit.vit_model, num_actions)
     optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     
