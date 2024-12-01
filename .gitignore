@@ -1,3 +1,4 @@
+Pong/images/
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -77,6 +78,7 @@ target/
 
 # Jupyter Notebook
 .ipynb_checkpoints
+scratch.ipynb
 
 # IPython
 profile_default/

@@ -4,24 +4,24 @@
 
 - `frameskip=4`
 - `repeat_action_probability=0.25`
-- `full_action_space=True`
 - `mode = 0` (default)
-- Difficult = 0 (default)
+- `Difficulty = 0` (default)
 - 
 ### Action Space
-0: NOOP
-1: FIRE
-2: RIGHT
-3: LEFT
-4: RIGHTFIRE
-5: LEFTFIRE
+- Restricted the movements of the possible actions to:
+  - 1: Fire, (triggers the start of the game)
+  - 0: do nothing
+  - 2: Move up
+  - 3: Move down.
 
 ### Observation Space
+
 #### Pixel Dimensions:
 
 - 210-pixel height
 - 160-pixel width
 - 3 color channels (RGB)
+
 
 
 ##### Notes
