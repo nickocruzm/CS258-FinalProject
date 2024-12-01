@@ -33,7 +33,6 @@ def preprocess_observation(obs, new_size=[64,64]):
     
     normalized_obs = resized_obs/255.0
     
-    logging.info("...COMPLETED preprocessing")
     return normalized_obs
 
 
