@@ -2,6 +2,7 @@ import tensorflow as tf
 import torch
 import logging
 from datetime import date
+import numpy as np
 
 today = date.today()
 formatted_date = today.strftime("%d-%m-%Y")
@@ -12,33 +13,36 @@ logging.basicConfig(filename=f'Logs/Pong/{formatted_date}_version0.log',
                     datefmt='%Y-%m-%d %H:%M:%S')
 
 
-def preprocess_observation(obs, new_size=[64,64]):
+def preprocess_observation(obs, new_size=[64, 64]):
     """
-        Resize frames: (px_height, px_width)
-        Normalize pixel values [0, 1]
-        
+    Resize frames to new_size (e.g., [64, 64]) and normalize pixel values to [0, 1].
+    Adds a batch dimension to the processed observation.
     """
-    
-    if(not torch.is_tensor(obs)):
-        log = f'obs: {type(obs)} converted to tensor'
-        log = log + f' obs.shape: {obs.shape}'
-        obs_tensor = torch.from_numpy(obs)
-        log = log + f' obs_tensor.shape: {obs_tensor.shape}'
-        obs = obs_tensor
-        logging.info(log)
-    
-    
-    logging.info(f'START preprocessing...new size: {new_size}')
+    # Convert input to a NumPy array if it's not already
+    if isinstance(obs, torch.Tensor):
+        obs = obs.numpy()  # Convert PyTorch tensor to NumPy
+        logging.info(f"Converted PyTorch tensor to NumPy. New shape: {obs.shape}")
+    elif not isinstance(obs, (tf.Tensor, np.ndarray)):
+        obs = np.array(obs)  # Convert other types (e.g., list) to NumPy
+        logging.info(f"Converted input to NumPy array. Shape: {obs.shape}")
 
-        
-    #mean_obs = np.mean(obs, axis=-1)
+    # Log the start of preprocessing
+    logging.info(f"START preprocessing...original shape: {obs.shape}, target size: {new_size}")
 
+    # Resize observation using TensorFlow
     resized_obs = tf.image.resize(obs, new_size).numpy()
-    
-    normalized_obs = resized_obs/255.0
-    
-    logging.info("...COMPLETED preprocessing")
-    return normalized_obs
+
+    # Normalize pixel values to [0, 1]
+    normalized_obs = resized_obs / 255.0
+
+    # Add a batch dimension
+    batched_image = tf.expand_dims(normalized_obs, axis=0).numpy()
+    print(type(batched_image))
+    # Log the final shape
+    logging.info(f"Completed preprocessing. Final shape: {batched_image.shape}")
+
+    # Return as a PyTorch tensor (if using PyTorch for modeling)
+    return torch.from_numpy(batched_image).permute(0,3,1,2).float() 
 
 
 def plot():
