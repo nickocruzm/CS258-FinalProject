@@ -1,5 +1,5 @@
 import ViTDQN as vit
-import functions as f
+
 import ReplayBuffer as RB
 import torch
 import torch.optim as optim

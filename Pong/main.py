@@ -22,6 +22,23 @@ import os
 import tensorflow as tf
 import functions as f
 
+def preprocess_observation(obs, new_size=[64,64]):
+    """
+        Resize frames: (px_height, px_width)
+        Normalize pixel values [0, 1]
+        
+    """
+    
+    if(not torch.is_tensor(obs)):
+        obs_tensor = torch.from_numpy(obs)
+        obs = obs_tensor
+
+    resized_obs = tf.image.resize(obs, new_size).numpy()
+    
+    normalized_obs = resized_obs/255.0
+    
+    logging.info("...COMPLETED preprocessing")
+    return normalized_obs
 
 
 if __name__ == '__main__':
@@ -38,7 +55,7 @@ if __name__ == '__main__':
     agent = Agent.Agent(num_actions, 64, 0.01, 0.001)
     
     
-    state = f.preprocess_observation(env.reset()[0])
+    state = preprocess_observation(env.reset()[0])
     done = False
     total_reward = 0
     i = 0
@@ -52,7 +69,7 @@ if __name__ == '__main__':
         action = torch.argmax(q_values).item()
         next_state, reward, done, a, b  = env.step(action)
         total_reward += reward
-        next_state = f.preprocess_observation(next_state)
+        next_state = preprocess_observation(next_state)
         state = next_state
         i = i + 1
         print(total_reward)
