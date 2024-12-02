@@ -21,42 +21,81 @@ import os
 
 import tensorflow as tf
 import functions as f
+import logging
 
+from datetime import date
+
+today = date.today()
+formatted_date = today.strftime("%d-%m-%Y")
+
+logging.basicConfig(filename=f'Logs/Pong/{formatted_date}_version0.log',
+                    level=logging.INFO,
+                    format='%(asctime)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
 
 if __name__ == '__main__':
+    
     gym.register_envs(ale_py)
     env = gym.make("ALE/Pong-v5", render_mode='rgb_array')
+    
     max_episodes = 100
     num_actions = env.action_space.n
-    STATE_SPACE = env.observation_space
-    print(STATE_SPACE)
     
-    model = vit.ViTDQN(vit.vit_model, num_actions)
-    optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
-    
-    agent = Agent.Agent(num_actions, 64, 0.01, 0.001)
+    # model = vit.ViTDQN(vit.vit_model, num_actions)
+    # optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     
     
-    state = f.preprocess_observation(env.reset()[0])
     done = False
     total_reward = 0
     i = 0
-    while not done:
-        print(f'i: {i}')
-        state_tensor = torch.tensor(state).unsqueeze(0)
-        state_tensor = state_tensor.permute(0,3,1,2)
-        #f.get_description(state_tensor)
-        q_values = model(state_tensor)
-        print(q_values)
-        action = torch.argmax(q_values).item()
-        next_state, reward, done, a, b  = env.step(action)
-        total_reward += reward
-        next_state = f.preprocess_observation(next_state)
-        state = next_state
-        i = i + 1
-        print(total_reward)
+    
+    means = []
+    logging.info("...COMPLETED preprocessing")
+    TARGET_UPDATE_FREQ = 100
+    EPSILON_DECAY = 0.0001
+    EPSILON = 0.1
+    EPSILON_END = 0.000001
+    BUFFER_SIZE = 100
+    BATCH_SIZE = 64 
+    LR = 0.0001
+    GAMMA = 0.99
+    total_steps  = 0
+    
+    agent = Agent.Agent(env, num_actions, BUFFER_SIZE, BATCH_SIZE, EPSILON, LR, GAMMA)
+    
+    for episode in range(0,max_episodes):
+        state = f.preprocess_observation(env.reset()[0])
+        done = False
+        total_reward = 0
+
+        while not done:
+            action = agent.select_action(state,env)
+            
+            next_state, reward, done, a, b = env.step(action)
+            next_state = f.preprocess_observation(next_state)
+            
+            agent.memory.push((state, action, reward, next_state, float(done)))
+            
+            total_reward += reward
+            agent.train()
+
+            total_steps += 1
+            print(f'total_steps: {total_steps}, action: {action}, reward: {reward}')
+            
+            if total_steps % TARGET_UPDATE_FREQ == 0:
+                logging.info(f'...updating network...')
+                agent.update_target_network()
+            
+            state = next_state
+
+        agent.epsilon = max(EPSILON_END, agent.epsilon * EPSILON_DECAY)
+
+        if episode % 10 == 0:
+            print(f"Episode: {episode}, Total Reward: {total_reward}, epsilon: {agent.epsilon}")
+
+        mean, std = agent.evaluate(env)
+        means.append(mean)
         
-        
-    env.close()
+
 
