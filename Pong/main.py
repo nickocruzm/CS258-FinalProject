@@ -51,7 +51,7 @@ if __name__ == '__main__':
     i = 0
     
     means = []
-    
+    logging.info("...COMPLETED preprocessing")
     TARGET_UPDATE_FREQ = 100
     EPSILON_DECAY = 0.0001
     EPSILON = 0.1

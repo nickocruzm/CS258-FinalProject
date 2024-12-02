@@ -5,6 +5,7 @@ import tensorflow as tf
 import torch.optim as optim
 import random
 import torch
+import torch.nn as nn
 import numpy as np
 
 # if torch.backends.mps.is_available():
@@ -52,15 +53,17 @@ class Agent:
         transitions = self.memory.sample(self.batch_size)
         batch = list(zip(*transitions))
         
+
+        
         print("batch[0]")
         print(batch[0])
         print("\n -------------------- \n")
 
-        states = torch.FloatTensor(np.array(batch[0]))
-        print(repr(states))
+        states = torch.stack(batch[0]).squeeze(1)
+        
         actions = torch.LongTensor(batch[1]).unsqueeze(1)
         rewards = torch.FloatTensor(batch[2]).unsqueeze(1)
-        next_states = torch.FloatTensor(np.array(batch[3]))
+        next_states = torch.FloatTensor(np.array(batch[3])).squeeze(1)
         dones = torch.FloatTensor(batch[4]).unsqueeze(1)
 
         predicted_Q = self.Q_network(states).gather(1, actions)
