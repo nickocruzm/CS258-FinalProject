@@ -28,7 +28,7 @@ from datetime import date
 today = date.today()
 formatted_date = today.strftime("%d-%m-%Y")
 
-logging.basicConfig(filename=f'Logs/Pong/{formatted_date}_version0.log',
+logging.basicConfig(filename=f'Pong/{formatted_date}_version0.log',
                     level=logging.INFO,
                     format='%(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
@@ -72,7 +72,7 @@ if __name__ == '__main__':
         while not done:
             action = agent.select_action(state,env)
             
-            next_state, reward, done, a, b = env.step(action)
+            next_state, reward, done, truncated, info = env.step(action)
             next_state = f.preprocess_observation(next_state)
             
             agent.memory.push((state, action, reward, next_state, float(done)))
@@ -81,21 +81,26 @@ if __name__ == '__main__':
             agent.train()
 
             total_steps += 1
-            print(f'total_steps: {total_steps}, action: {action}, reward: {reward}')
+            print(f'episode: {episode}, total_steps: {total_steps}, action: {action}, total reward: {total_reward}')
             
             if total_steps % TARGET_UPDATE_FREQ == 0:
-                logging.info(f'...updating network...')
+                print("...updating network...")
                 agent.update_target_network()
             
-            state = next_state
-
+            if(total_reward < 0):
+                break
+            
+            state = next_state 
+      
         agent.epsilon = max(EPSILON_END, agent.epsilon * EPSILON_DECAY)
 
-        if episode % 10 == 0:
+        if episode % 100 == 0:
             print(f"Episode: {episode}, Total Reward: {total_reward}, epsilon: {agent.epsilon}")
 
         mean, std = agent.evaluate(env)
         means.append(mean)
+        
+    logging.info(f'episode: {episode} completed')
         
 
 

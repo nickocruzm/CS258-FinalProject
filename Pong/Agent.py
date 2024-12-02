@@ -7,12 +7,22 @@ import random
 import torch
 import torch.nn as nn
 import numpy as np
+import logging
+from datetime import date
+
+today = date.today()
+formatted_date = today.strftime("%d-%m-%Y")
 
 # if torch.backends.mps.is_available():
 #     device = torch.device("mps")  # Use Metal Performance Shaders
 # else:
 #     device = torch.device("cpu")  # Fallback to CPU
 # print(f"Using device: {device}") 
+
+logging.basicConfig(filename=f'Logs/Pong/{formatted_date}_version0.log',
+                    level=logging.INFO,
+                    format='%(asctime)s - %(message)s',
+                    datefmt='%Y-%m-%d %H:%M:%S')
 
 class Agent:
     def __init__(self, env, action_size, buffer_size, batch_size, eps, LR, gamma):
@@ -30,6 +40,7 @@ class Agent:
         self.Target_network.load_state_dict(self.Q_network.state_dict())
 
     def greedy_action(self, state):
+        
         with torch.no_grad():
             state = torch.FloatTensor(state)
             q_values = self.Q_network(state)
@@ -53,14 +64,7 @@ class Agent:
         transitions = self.memory.sample(self.batch_size)
         batch = list(zip(*transitions))
         
-
-        
-        print("batch[0]")
-        print(batch[0])
-        print("\n -------------------- \n")
-
         states = torch.stack(batch[0]).squeeze(1)
-        
         actions = torch.LongTensor(batch[1]).unsqueeze(1)
         rewards = torch.FloatTensor(batch[2]).unsqueeze(1)
         next_states = torch.FloatTensor(np.array(batch[3])).squeeze(1)
@@ -89,14 +93,18 @@ class Agent:
             env: the environment
             n_rollouts (int): the number of rollouts to be performed
         """
+        
         rewards = []
         for _ in range(n_rollouts):
-            state, done = env.reset(), False
+            state = env.reset()[0]
+            done = False
             rewards.append(0)
             while not done:
+                state = f.preprocess_observation(state)
                 action = self.greedy_action(state)
-                state, reward, done, _ = env.step(action)
+                state, reward, done, truncated, info = env.step(action)
                 rewards[-1] += reward
+        print("Evaluation Completed")
         return np.mean(rewards), np.std(rewards)
 
     def save_checkpoint(self, filename):

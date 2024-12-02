@@ -37,13 +37,9 @@ class ViTDQN(nn.Module):
         )
 
     def forward(self, x):
-        print("forward...")  
-        
+        print("forward...")
         if not isinstance(x, torch.Tensor):
             x = torch.tensor(x)
-        
-        logging.info(f'...forward called... \t x: {type(x)}, {x.shape}')
-        logging.info(f"Input shape to ViT: {x.shape}")
         
         embeddings = self.vit(pixel_values=x).last_hidden_state[:, 0, :]  # CLS token
         return self.fc(embeddings)
