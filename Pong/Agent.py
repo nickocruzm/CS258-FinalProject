@@ -9,6 +9,8 @@ import torch.nn as nn
 import numpy as np
 import logging
 from datetime import date
+import os
+
 
 today = date.today()
 formatted_date = today.strftime("%d-%m-%Y")
@@ -19,7 +21,7 @@ formatted_date = today.strftime("%d-%m-%Y")
 #     device = torch.device("cpu")  # Fallback to CPU
 # print(f"Using device: {device}") 
 
-logging.basicConfig(filename=f'Logs/Pong/{formatted_date}_version0.log',
+logging.basicConfig(log_file_path = f'{os.getcwd()}/glob_{formatted_date}.log',
                     level=logging.INFO,
                     format='%(asctime)s - %(message)s',
                     datefmt='%Y-%m-%d %H:%M:%S')
@@ -30,7 +32,7 @@ class Agent:
         self.action_size = action_size
         self.memory = RB.ReplayBuffer(buffer_size)
         self.Q_network = vit.ViTDQN(vit.vit_model, action_size)
-        self.Target_network = vit.ViTDQN(vit.vit_model,action_size)
+        self.Target_network = vit.ViTDQN(vit.vit_model, action_size)
         self.optimizer = optim.Adam(self.Q_network.parameters(), lr=LR)
         self.update_target_network()
         self.batch_size = batch_size
@@ -40,7 +42,6 @@ class Agent:
         self.Target_network.load_state_dict(self.Q_network.state_dict())
 
     def greedy_action(self, state):
-        
         with torch.no_grad():
             state = torch.FloatTensor(state)
             q_values = self.Q_network(state)

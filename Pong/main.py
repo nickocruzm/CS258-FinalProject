@@ -39,33 +39,33 @@ if __name__ == '__main__':
     gym.register_envs(ale_py)
     env = gym.make("ALE/Pong-v5", render_mode='rgb_array')
     
-    max_episodes = 100
+    
     num_actions = env.action_space.n
     
     # model = vit.ViTDQN(vit.vit_model, num_actions)
     # optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
     
     
-    done = False
-    total_reward = 0
-    i = 0
-    
     means = []
-    logging.info("...COMPLETED preprocessing")
     TARGET_UPDATE_FREQ = 100
+    MAX_EPISODES = 100000
     EPSILON_DECAY = 0.0001
     EPSILON = 0.1
     EPSILON_END = 0.000001
-    BUFFER_SIZE = 100
-    BATCH_SIZE = 64 
-    LR = 0.0001
+    BUFFER_SIZE = 10000
+    BATCH_SIZE = 100
+    LR = 0.001
     GAMMA = 0.99
     total_steps  = 0
     
     agent = Agent.Agent(env, num_actions, BUFFER_SIZE, BATCH_SIZE, EPSILON, LR, GAMMA)
     
+    done = False
+    total_reward = 0
+    i = 0
+    
     for episode in range(0,max_episodes):
-        state = f.preprocess_observation(env.reset()[0])
+        state = f.preprocess_observation(env.reset()[0], [16,16])
         done = False
         total_reward = 0
 
@@ -84,7 +84,6 @@ if __name__ == '__main__':
             print(f'episode: {episode}, total_steps: {total_steps}, action: {action}, total reward: {total_reward}')
             
             if total_steps % TARGET_UPDATE_FREQ == 0:
-                print("...updating network...")
                 agent.update_target_network()
             
             if(total_reward < 0):
